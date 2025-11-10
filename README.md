@@ -217,4 +217,4 @@ For support, email support@neuronest.com or open an issue on GitHub.
 
 ---
 
-**Made with ❤️ for the neurodivergent community**
+**Made By Abhishek**
