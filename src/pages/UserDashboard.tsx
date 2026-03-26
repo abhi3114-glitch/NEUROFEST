@@ -7,6 +7,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import MoodTracker from '@/components/MoodTracker';
+import CalmRoom from '@/components/CalmRoom';
+import AACBoard from '@/components/AACBoard';
+import CommunitySupport from '@/components/CommunitySupport';
 import { groqClient, isAIAvailable } from '@/lib/groqClient';
 import { 
   Home, 
@@ -16,7 +19,15 @@ import {
   CheckSquare,
   Loader2,
   ArrowLeft,
-  AlertCircle
+  AlertCircle,
+  Wind,
+  Grid,
+  Users,
+  BellRing,
+  Star,
+  Wand2,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -43,7 +54,8 @@ const defaultTasks: DailyTask[] = [
 
 export default function UserDashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'mood' | 'routine' | 'assistant'>('mood');
+  const [activeTab, setActiveTab] = useState<'mood' | 'routine' | 'assistant' | 'calm' | 'aac' | 'community'>('mood');
+  const [stars, setStars] = useState(() => parseInt(localStorage.getItem('userStars') || '0', 10));
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { 
       role: 'assistant', 
@@ -57,6 +69,7 @@ export default function UserDashboard() {
     const saved = localStorage.getItem('dailyTasks');
     return saved ? JSON.parse(saved) : defaultTasks;
   });
+  const [newTaskInput, setNewTaskInput] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const aiConfigured = isAIAvailable();
 
@@ -116,16 +129,42 @@ export default function UserDashboard() {
     }
   };
 
+  const handleSOS = () => {
+    localStorage.setItem('criticalAlert', JSON.stringify({ time: new Date().toISOString(), message: "User triggered Emergency SOS!" }));
+    toast.error("Emergency SOS Sent to Caregiver!", { duration: 5000 });
+  };
+
+  const assistBreakdown = async () => {
+    if (!aiConfigured) return toast.error("AI Assistant not configured. Add Groq API key.");
+    setIsLoading(true);
+    try {
+      const resp = await groqClient.assistUser("Break down the task 'Clean my room' into 3 simple, motivating steps for a child.");
+      toast.success("AI Task Breakdown received!");
+      const newMsg: ChatMessage = { role: 'assistant', content: resp, timestamp: new Date() };
+      setChatMessages(prev => [...prev, newMsg]);
+      setActiveTab('assistant');
+    } catch (e) {
+      toast.error("Failed to generate breakdown.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const toggleTask = (taskId: string) => {
-    const updatedTasks = tasks.map(task =>
-      task.id === taskId ? { ...task, completed: !task.completed } : task
+    const task = tasks.find(t => t.id === taskId);
+    const wasCompleted = task?.completed;
+    
+    const updatedTasks = tasks.map(t =>
+      t.id === taskId ? { ...t, completed: !t.completed } : t
     );
     setTasks(updatedTasks);
     localStorage.setItem('dailyTasks', JSON.stringify(updatedTasks));
     
-    const task = updatedTasks.find(t => t.id === taskId);
-    if (task?.completed) {
-      toast.success(`Great job! ✨ ${task.task} completed!`);
+    if (!wasCompleted) {
+      const newStars = stars + 1;
+      setStars(newStars);
+      localStorage.setItem('userStars', newStars.toString());
+      toast.success(`Great job! ✨ Earned 1 Star! You have ${newStars} total.`);
     }
   };
 
@@ -136,13 +175,34 @@ export default function UserDashboard() {
     toast.info('Daily tasks reset for a new day!');
   };
 
+  const handleAddTask = () => {
+    if (!newTaskInput.trim()) return;
+    const newTask: DailyTask = {
+      id: Date.now().toString(),
+      task: newTaskInput.trim(),
+      completed: false
+    };
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks);
+    localStorage.setItem('dailyTasks', JSON.stringify(updatedTasks));
+    setNewTaskInput('');
+    toast.success('Task added successfully!');
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    const updatedTasks = tasks.filter(t => t.id !== taskId);
+    setTasks(updatedTasks);
+    localStorage.setItem('dailyTasks', JSON.stringify(updatedTasks));
+    toast.success('Task deleted.');
+  };
+
   const completedCount = tasks.filter(t => t.completed).length;
   const progressPercentage = Math.round((completedCount / tasks.length) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen calm-background">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-zinc-950/50 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50">
         <div className="neuronest-container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -157,16 +217,25 @@ export default function UserDashboard() {
               </Button>
               <div className="flex items-center gap-2">
                 <Home className="h-6 w-6 text-blue-500" />
-                <h1 className="text-2xl font-bold text-gray-900">My Dashboard</h1>
+                <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">My Dashboard</h1>
               </div>
             </div>
-            <Button
-              onClick={() => navigate('/learning-games')}
-              className="neuronest-button bg-purple-500 hover:bg-purple-600 text-white"
-            >
-              <Gamepad2 className="mr-2 h-5 w-5" />
-              Play Games
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={handleSOS}
+                className="bg-red-500 hover:bg-red-600 text-white font-bold animate-pulse shadow-lg hidden sm:flex"
+              >
+                <BellRing className="mr-2 h-5 w-5" />
+                SOS Help
+              </Button>
+              <Button
+                onClick={() => navigate('/learning-games')}
+                className="neuronest-button bg-purple-500 hover:bg-purple-600 text-white"
+              >
+                <Gamepad2 className="mr-2 h-5 w-5 hidden sm:inline" />
+                Play Games
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -200,38 +269,83 @@ export default function UserDashboard() {
             <MessageSquare className="mr-2 h-5 w-5" />
             AI Assistant
           </Button>
+          <Button
+            onClick={() => setActiveTab('calm')}
+            variant={activeTab === 'calm' ? 'default' : 'outline'}
+            className={`neuronest-button ${activeTab === 'calm' ? 'bg-blue-500 text-white' : ''}`}
+            size="lg"
+          >
+            <Wind className="mr-2 h-5 w-5" />
+            Calm Room
+          </Button>
+          <Button
+            onClick={() => setActiveTab('aac')}
+            variant={activeTab === 'aac' ? 'default' : 'outline'}
+            className={`neuronest-button ${activeTab === 'aac' ? 'bg-blue-500 text-white' : ''}`}
+            size="lg"
+          >
+            <Grid className="mr-2 h-5 w-5" />
+            AAC Board
+          </Button>
+          <Button
+            onClick={() => setActiveTab('community')}
+            variant={activeTab === 'community' ? 'default' : 'outline'}
+            className={`neuronest-button ${activeTab === 'community' ? 'bg-blue-500 text-white' : ''}`}
+            size="lg"
+          >
+            <Users className="mr-2 h-5 w-5" />
+            Community
+          </Button>
         </div>
 
         {/* Content Area */}
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
           {activeTab === 'mood' && <MoodTracker />}
+          {activeTab === 'calm' && <CalmRoom />}
+          {activeTab === 'aac' && <AACBoard />}
+          {activeTab === 'community' && <CommunitySupport />}
 
           {activeTab === 'routine' && (
             <Card className="neuronest-card">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-2xl">My Daily Routine</CardTitle>
+                    <CardTitle className="text-2xl flex items-center gap-3">
+                      My Daily Routine
+                      <span className="text-lg bg-yellow-500/20 text-yellow-400 font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                        <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" /> {stars} {stars === 1 ? 'Star' : 'Stars'}
+                      </span>
+                    </CardTitle>
                     <CardDescription className="text-base">
-                      Check off tasks as you complete them throughout the day
+                      Check off tasks to earn stars!
                     </CardDescription>
                   </div>
-                  <Button
-                    onClick={resetTasks}
-                    variant="outline"
-                    size="sm"
-                  >
-                    Reset Tasks
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={assistBreakdown}
+                      variant="outline"
+                      size="sm"
+                      className="text-purple-400 border-purple-500/30 hover:bg-purple-500/10 hidden sm:flex"
+                    >
+                      <Wand2 className="w-4 h-4 mr-1" /> Break Down Task
+                    </Button>
+                    <Button
+                      onClick={resetTasks}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Reset Tasks
+                    </Button>
+                  </div>
                 </div>
-                <div className="mt-4 p-4 bg-blue-50 rounded-xl">
+                <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-700">Today's Progress</span>
-                    <span className="text-sm font-bold text-blue-600">
+                    <span className="text-sm font-medium text-gray-400">Today's Progress</span>
+                    <span className="text-sm font-bold text-blue-400">
                       {completedCount}/{tasks.length} ({progressPercentage}%)
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full bg-white/10 rounded-full h-3">
                     <div 
                       className="bg-blue-500 h-3 rounded-full transition-all duration-500"
                       style={{ width: `${progressPercentage}%` }}
@@ -243,16 +357,28 @@ export default function UserDashboard() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                <div className="flex gap-2 p-1">
+                  <Input 
+                    placeholder="Add a new custom task..." 
+                    value={newTaskInput}
+                    onChange={(e) => setNewTaskInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
+                    className="bg-white/5 border-white/10 text-white rounded-xl placeholder:text-gray-500 flex-1 h-12"
+                  />
+                  <Button onClick={handleAddTask} disabled={!newTaskInput.trim()} className="neuronest-button bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-xl h-12">
+                    <Plus className="w-5 h-5 mr-1" /> Add
+                  </Button>
+                </div>
                 <div className="space-y-4">
                   {tasks.map((task) => (
                     <div
                       key={task.id}
                       className={`
-                        flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200
+                        flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 group
                         ${task.completed 
-                          ? 'bg-green-50 border-green-300' 
-                          : 'bg-white border-gray-200 hover:border-blue-300'
+                          ? 'bg-green-500/10 border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.1)]' 
+                          : 'bg-zinc-900/60 backdrop-blur-md border-white/10 hover:border-blue-400/50 hover:bg-zinc-800/80'
                         }
                       `}
                     >
@@ -260,19 +386,28 @@ export default function UserDashboard() {
                         id={task.id}
                         checked={task.completed}
                         onCheckedChange={() => toggleTask(task.id)}
-                        className="h-6 w-6 touch-target"
+                        className="h-6 w-6 touch-target shrink-0"
                         aria-label={`Mark ${task.task} as ${task.completed ? 'incomplete' : 'complete'}`}
                       />
                       <label
                         htmlFor={task.id}
                         className={`
-                          flex-1 text-lg cursor-pointer
-                          ${task.completed ? 'line-through text-gray-500' : 'text-gray-900 font-medium'}
+                          flex-1 text-lg cursor-pointer transition-all duration-300
+                          ${task.completed ? 'line-through text-gray-600' : 'text-gray-200 font-medium'}
                         `}
                       >
                         {task.task}
                       </label>
-                      {task.completed && <span className="text-2xl" aria-label="Completed">✅</span>}
+                      {task.completed && <span className="text-2xl animate-in zoom-in shrink-0">✅</span>}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteTask(task.id)}
+                        className={`shrink-0 transition-opacity duration-300 ${task.completed ? 'opacity-50' : 'opacity-0 group-hover:opacity-100'} hover:text-red-400 hover:bg-red-500/20`}
+                        aria-label="Delete task"
+                      >
+                        <Trash2 className="w-5 h-5 text-gray-500 hover:text-red-400" />
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -309,10 +444,10 @@ export default function UserDashboard() {
                       >
                         <div
                           className={`
-                            max-w-[80%] p-4 rounded-2xl
+                            max-w-[80%] p-4 rounded-2xl shadow-lg border border-white/5
                             ${message.role === 'user'
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-100 text-gray-900'
+                              ? 'bg-blue-600/90 text-white backdrop-blur-sm'
+                              : 'bg-zinc-800/90 text-gray-200 backdrop-blur-md'
                             }
                           `}
                         >
@@ -325,8 +460,8 @@ export default function UserDashboard() {
                     ))}
                     {isLoading && (
                       <div className="flex justify-start">
-                        <div className="bg-gray-100 p-4 rounded-2xl">
-                          <Loader2 className="h-5 w-5 animate-spin text-gray-600" />
+                        <div className="bg-zinc-800/80 backdrop-blur-sm p-4 rounded-2xl border border-white/5 shadow-lg">
+                          <Loader2 className="h-5 w-5 animate-spin text-purple-400" />
                         </div>
                       </div>
                     )}
@@ -337,8 +472,8 @@ export default function UserDashboard() {
                     value={userInput}
                     onChange={(e) => setUserInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Type your message here..."
-                    className="text-base p-6 rounded-xl"
+                    placeholder="Type your message to NeuroNest..."
+                    className="text-base p-6 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:ring-purple-500/50"
                     disabled={isLoading}
                     aria-label="Chat message input"
                   />

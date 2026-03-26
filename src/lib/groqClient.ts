@@ -31,7 +31,9 @@ export class GroqClient {
 
   async chat(messages: ChatMessage[]): Promise<string> {
     if (!this.apiKey) {
-      return "⚠️ AI Assistant is not configured. Please add your Groq API key to enable this feature.\n\nSteps:\n1. Copy .env.example to .env\n2. Get your API key from https://console.groq.com/keys\n3. Add VITE_GROQ_API_KEY=your_key_here to .env\n4. Restart the development server";
+      // Intelligent demo mode — provide helpful, realistic mock responses
+      const userMsg = messages.find(m => m.role === 'user')?.content?.toLowerCase() || '';
+      return this.getDemoResponse(userMsg);
     }
 
     try {
@@ -148,6 +150,45 @@ Make learning fun, engaging, and accessible!`;
     return this.chat(messages);
   }
 
+  private getDemoResponse(userMsg: string): string {
+    // Simulate a brief "thinking" delay feeling by returning contextual responses
+    if (userMsg.includes('hello') || userMsg.includes('hi') || userMsg.includes('hey')) {
+      return "Hello there! 👋 I'm your NeuroNest AI companion. I'm here to help you with your daily routine, answer questions, or just be someone to talk to. What would you like help with today?";
+    }
+    if (userMsg.includes('how are you') || userMsg.includes('how do you feel')) {
+      return "I'm doing great, thank you for asking! 😊 More importantly, how are YOU feeling today? Remember, it's okay to feel however you feel. I'm here to listen and help!";
+    }
+    if (userMsg.includes('sad') || userMsg.includes('upset') || userMsg.includes('cry')) {
+      return "I hear you, and I want you to know that your feelings are completely valid. 💙\n\nHere are some things that might help:\n1. 🧘 Try the Calm Room — deep breathing can help you feel better\n2. 🎵 Listen to your favorite calming music\n3. 💬 Talk to someone you trust about how you feel\n4. ✨ Remember: tough moments always pass. You are stronger than you think!";
+    }
+    if (userMsg.includes('anxious') || userMsg.includes('worried') || userMsg.includes('nervous') || userMsg.includes('scared')) {
+      return "It's okay to feel anxious sometimes. You're safe here. 🌟\n\nLet's try something together:\n1. 🫁 Take 3 slow, deep breaths with me (inhale 4 seconds, exhale 4 seconds)\n2. 👀 Name 5 things you can see around you right now\n3. 🧘 Visit the Calm Room for a guided breathing exercise\n\nRemember: anxiety is just a feeling — it will pass, and you are doing great just by reaching out! 💪";
+    }
+    if (userMsg.includes('angry') || userMsg.includes('mad') || userMsg.includes('frustrat')) {
+      return "I understand feeling frustrated. It's a normal emotion! 🔥\n\nHere are some healthy ways to handle it:\n1. 🚶 Take a short walk or stretch\n2. 🧊 Hold something cold (like an ice cube) for 30 seconds\n3. 🧘 Try the Calm Room breathing exercise\n4. ✍️ Write down what's making you angry\n\nYou're doing amazing just by recognizing your feelings! That takes real courage. 💪";
+    }
+    if (userMsg.includes('task') || userMsg.includes('routine') || userMsg.includes('schedule') || userMsg.includes('todo')) {
+      return "Great question! Here's how to stay on track with your daily tasks: ✅\n\n1. Start with the easiest task first — small wins build confidence!\n2. Take a 5-minute break between tasks (try the Sensory Break Timer!)\n3. Check off each task as you finish — you'll earn stars! ⭐\n4. Don't worry if you can't finish everything. Progress matters more than perfection!\n\nWould you like me to help break down a specific task into smaller steps?";
+    }
+    if (userMsg.includes('clean') || userMsg.includes('room') || userMsg.includes('organize')) {
+      return "Let's break 'Clean My Room' into 3 easy steps! 🏠\n\n**Step 1: Pick up clothes** 👕\nGather all clothes from the floor. Put clean ones away, dirty ones in the hamper.\n\n**Step 2: Clear your desk** 📚\nPut books on shelves, throw away trash, organize your supplies.\n\n**Step 3: Make your bed** 🛏️\nPull up the sheets, fluff your pillow, and you're done!\n\n🎉 You did it! Each step only takes about 5 minutes. You've got this!";
+    }
+    if (userMsg.includes('game') || userMsg.includes('play') || userMsg.includes('fun') || userMsg.includes('bored')) {
+      return "Looking for something fun? 🎮 NeuroNest has some awesome games!\n\n1. 🎭 **Emotion Detective** — Learn to spot different emotions\n2. 📚 **Word Builder** — Practice reading with colorful letters\n3. 🔢 **Number Ninja** — Fun addition challenges\n\nClick the 'Play Games' button at the top to get started! Each game earns you stars! ⭐";
+    }
+    if (userMsg.includes('sleep') || userMsg.includes('bedtime') || userMsg.includes('night') || userMsg.includes('tired')) {
+      return "Getting ready for bed? Here's a calming bedtime routine: 🌙\n\n1. 🪥 Brush your teeth\n2. 📖 Read a story or look at pictures for 10 minutes\n3. 🧘 Try the Calm Room breathing exercise\n4. 🎵 Listen to soft music or nature sounds\n5. 💤 Close your eyes and think of 3 good things from today\n\nSweet dreams! Tomorrow is a fresh new day! ✨";
+    }
+    if (userMsg.includes('help') || userMsg.includes('what can you do') || userMsg.includes('features')) {
+      return "I can help you with lots of things! 🌟\n\n🧠 **Support & Chat** — Talk about your feelings or ask questions\n📋 **Daily Routines** — Help organize and break down tasks\n🎮 **Learning Games** — Fun activities for skills practice\n🧘 **Calm Room** — Guided breathing for when you need to relax\n🗣️ **AAC Board** — Quick communication with speech output\n👥 **Community** — Connect with others who understand\n\nJust type anything you need help with!";
+    }
+    if (userMsg.includes('thank') || userMsg.includes('thanks')) {
+      return "You're very welcome! 😊 It makes me happy to help you. Remember, I'm always here whenever you need me. You're doing an amazing job! Keep being awesome! 🌟✨";
+    }
+    // Default response for anything else
+    return "That's a great question! 🤔 I'm here to help you with anything you need.\n\nI can assist with:\n• 📋 Breaking down tasks into simple steps\n• 😊 Talking about feelings and emotions\n• 🎮 Suggesting fun learning activities\n• 🧘 Calming exercises and breathing\n• 💡 Answering questions about NeuroNest\n\nTell me more about what's on your mind, and I'll do my best to help! 💙";
+  }
+
   // Health check method
   isConfigured(): boolean {
     return !!this.apiKey;
@@ -157,7 +198,7 @@ Make learning fun, engaging, and accessible!`;
 // Export a singleton instance
 export const groqClient = new GroqClient();
 
-// Export utility function to check if AI is available
+// Export utility function — always available since we have demo mode
 export const isAIAvailable = (): boolean => {
-  return groqClient.isConfigured();
+  return true;
 };

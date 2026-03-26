@@ -32,7 +32,7 @@ const letterColors = [
 
 export default function LearningGames() {
   const navigate = useNavigate();
-  const [activeGame, setActiveGame] = useState<'emotion' | 'literacy' | null>(null);
+  const [activeGame, setActiveGame] = useState<'emotion' | 'literacy' | 'math' | null>(null);
   const [score, setScore] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -44,7 +44,18 @@ export default function LearningGames() {
 
   // Literacy game state
   const words = ['CAT', 'DOG', 'SUN', 'TREE', 'BOOK'];
-  const [currentWord] = useState(words[Math.floor(Math.random() * words.length)]);
+  const [currentWord, setCurrentWord] = useState(words[Math.floor(Math.random() * words.length)]);
+
+  // Math game state
+  const [mathProblem, setMathProblem] = useState({ num1: 2, num2: 2, answer: 4, options: [3, 4, 5] });
+
+  const generateMathProblem = () => {
+    const num1 = Math.floor(Math.random() * 5) + 1;
+    const num2 = Math.floor(Math.random() * 5) + 1;
+    const answer = num1 + num2;
+    const options = [answer, answer + 1, Math.max(1, answer - 1)].sort(() => Math.random() - 0.5);
+    return { num1, num2, answer, options };
+  };
 
   const startEmotionGame = () => {
     setActiveGame('emotion');
@@ -59,6 +70,15 @@ export default function LearningGames() {
     setScore(0);
     setCurrentQuestion(0);
     setSelectedAnswer(null);
+    setCurrentWord(words[Math.floor(Math.random() * words.length)]);
+  };
+
+  const startMathGame = () => {
+    setActiveGame('math');
+    setScore(0);
+    setCurrentQuestion(0);
+    setSelectedAnswer(null);
+    setMathProblem(generateMathProblem());
   };
 
   const checkEmotionAnswer = (selectedName: string) => {
@@ -83,6 +103,28 @@ export default function LearningGames() {
     }, 2000);
   };
 
+  const checkMathAnswer = (selectedNum: number) => {
+    setSelectedAnswer(selectedNum.toString());
+    
+    if (selectedNum === mathProblem.answer) {
+      setScore(score + 1);
+      toast.success('🎉 Correct!');
+    } else {
+      toast.error(`Not quite! The answer was ${mathProblem.answer}`);
+    }
+
+    setTimeout(() => {
+      if (currentQuestion < 4) {
+        setCurrentQuestion(currentQuestion + 1);
+        setMathProblem(generateMathProblem());
+        setSelectedAnswer(null);
+      } else {
+        toast.success(`Game Over! You scored ${score + (selectedNum === mathProblem.answer ? 1 : 0)} out of 5! 🏆`);
+        setTimeout(() => setActiveGame(null), 2000);
+      }
+    }, 2000);
+  };
+
   const speakWord = () => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(currentWord);
@@ -96,9 +138,9 @@ export default function LearningGames() {
   const progress = ((currentQuestion + 1) / 5) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50">
+    <div className="min-h-screen calm-background">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-zinc-950/50 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50">
         <div className="neuronest-container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -111,14 +153,14 @@ export default function LearningGames() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div className="flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-purple-500" />
-                <h1 className="text-2xl font-bold text-gray-900">Learning Games</h1>
+                <Sparkles className="h-6 w-6 text-purple-400" />
+                <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Learning Games</h1>
               </div>
             </div>
             {activeGame && (
-              <div className="flex items-center gap-2 bg-yellow-50 px-4 py-2 rounded-xl">
-                <Star className="h-5 w-5 text-yellow-500" />
-                <span className="font-bold text-gray-900">Score: {score}</span>
+              <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 px-4 py-2 rounded-xl shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
+                <span className="font-bold text-yellow-100">Score: {score}</span>
               </div>
             )}
           </div>
@@ -130,10 +172,10 @@ export default function LearningGames() {
           /* Game Selection */
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              <h2 className="text-4xl font-bold text-white mb-4">
                 Choose a Learning Activity
               </h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-gray-400">
                 Pick a game to start learning and having fun!
               </p>
             </div>
@@ -145,7 +187,7 @@ export default function LearningGames() {
               >
                 <CardHeader className="text-center">
                   <div className="flex justify-center mb-4">
-                    <div className="p-4 bg-pink-100 rounded-3xl">
+                    <div className="p-4 bg-pink-500/20 rounded-3xl">
                       <span className="text-6xl">😊</span>
                     </div>
                   </div>
@@ -167,7 +209,7 @@ export default function LearningGames() {
               >
                 <CardHeader className="text-center">
                   <div className="flex justify-center mb-4">
-                    <div className="p-4 bg-blue-100 rounded-3xl">
+                    <div className="p-4 bg-blue-500/20 rounded-3xl">
                       <span className="text-6xl">📚</span>
                     </div>
                   </div>
@@ -178,6 +220,28 @@ export default function LearningGames() {
                 </CardHeader>
                 <CardContent>
                   <Button className="w-full neuronest-button bg-blue-500 hover:bg-blue-600 text-white" size="lg">
+                    Start Playing
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card 
+                className="neuronest-card cursor-pointer hover:scale-105 transition-transform duration-300"
+                onClick={startMathGame}
+              >
+                <CardHeader className="text-center">
+                  <div className="flex justify-center mb-4">
+                    <div className="p-4 bg-green-500/20 rounded-3xl">
+                      <span className="text-6xl">🔢</span>
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl">Number Ninja</CardTitle>
+                  <CardDescription className="text-base">
+                    Practice basic counting and addition
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full neuronest-button bg-green-500 hover:bg-green-600 text-white" size="lg">
                     Start Playing
                   </Button>
                 </CardContent>
@@ -197,14 +261,14 @@ export default function LearningGames() {
               </CardHeader>
               <CardContent className="space-y-8">
                 {/* Current Emotion Display */}
-                <div className="text-center p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl">
-                  <p className="text-xl text-gray-700 mb-6">
+                <div className="text-center p-8 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl border border-white/10">
+                  <p className="text-xl text-gray-300 mb-6">
                     Which emotion is this?
                   </p>
                   <div className="text-9xl mb-4 animate-bounce">
                     {currentEmotion.emoji}
                   </div>
-                  <p className="text-lg text-gray-600 italic">
+                  <p className="text-lg text-gray-400 italic">
                     {currentEmotion.description}
                   </p>
                 </div>
@@ -220,24 +284,24 @@ export default function LearningGames() {
                         p-6 rounded-2xl border-2 transition-all duration-200 touch-target
                         ${selectedAnswer === emotion.name
                           ? emotion.name === currentEmotion.name
-                            ? 'bg-green-100 border-green-400 scale-105'
-                            : 'bg-red-100 border-red-400'
+                            ? 'bg-green-500/20 border-green-400 scale-105'
+                            : 'bg-red-500/20 border-red-400'
                           : selectedAnswer && emotion.name === currentEmotion.name
-                          ? 'bg-green-100 border-green-400 scale-105'
-                          : 'bg-white border-gray-200 hover:border-purple-300 hover:scale-105'
+                          ? 'bg-green-500/20 border-green-400 scale-105'
+                          : 'bg-white/5 border-white/10 hover:border-purple-400/50 hover:scale-105'
                         }
                         ${selectedAnswer ? 'cursor-not-allowed' : 'cursor-pointer'}
                       `}
                     >
                       <div className="text-4xl mb-2">{emotion.emoji}</div>
-                      <div className="font-semibold text-gray-900">{emotion.name}</div>
+                      <div className="font-semibold text-gray-200">{emotion.name}</div>
                     </button>
                   ))}
                 </div>
               </CardContent>
             </Card>
           </div>
-        ) : (
+        ) : activeGame === 'literacy' ? (
           /* Literacy Game */
           <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-300">
             <Card className="neuronest-card">
@@ -249,7 +313,7 @@ export default function LearningGames() {
               </CardHeader>
               <CardContent className="space-y-8">
                 {/* Word Display */}
-                <div className="text-center p-12 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl">
+                <div className="text-center p-12 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl border border-white/10">
                   <div className="flex justify-center gap-4 mb-8">
                     {currentWord.split('').map((letter, index) => (
                       <div
@@ -275,8 +339,8 @@ export default function LearningGames() {
                 </div>
 
                 {/* Interactive Area */}
-                <div className="p-8 bg-white border-2 border-dashed border-gray-300 rounded-2xl text-center">
-                  <p className="text-lg text-gray-600 mb-4">
+                <div className="p-8 bg-white/5 border-2 border-dashed border-white/20 rounded-2xl text-center">
+                  <p className="text-lg text-gray-400 mb-4">
                     Practice writing the letters on paper or trace them with your finger!
                   </p>
                   <div className="flex justify-center gap-4">
@@ -303,7 +367,54 @@ export default function LearningGames() {
               </CardContent>
             </Card>
           </div>
-        )}
+        ) : activeGame === 'math' ? (
+          /* Math Game */
+          <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <Card className="neuronest-card">
+              <CardHeader>
+                <div className="flex justify-between items-center mb-4">
+                  <CardTitle className="text-2xl">Question {currentQuestion + 1} of 5</CardTitle>
+                  <Trophy className="h-8 w-8 text-yellow-500" />
+                </div>
+                <Progress value={progress} className="h-3" />
+              </CardHeader>
+              <CardContent className="space-y-8">
+                <div className="text-center p-8 bg-gradient-to-br from-green-500/10 to-blue-500/10 rounded-2xl border border-white/10">
+                  <p className="text-xl text-gray-300 mb-6">
+                    What is {mathProblem.num1} + {mathProblem.num2}?
+                  </p>
+                  <div className="text-8xl mb-4 font-bold text-white">
+                    {mathProblem.num1} + {mathProblem.num2}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  {mathProblem.options.map((opt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => !selectedAnswer && checkMathAnswer(opt)}
+                      disabled={!!selectedAnswer}
+                      className={`
+                        p-6 rounded-2xl border-2 transition-all duration-200 text-4xl font-bold touch-target
+                        ${selectedAnswer === opt.toString()
+                          ? opt === mathProblem.answer
+                            ? 'bg-green-500/20 border-green-400 scale-105 text-green-400'
+                            : 'bg-red-500/20 border-red-400 text-red-400'
+                          : selectedAnswer && opt === mathProblem.answer
+                          ? 'bg-green-500/20 border-green-400 scale-105 text-green-400'
+                          : 'bg-white/5 border-white/10 hover:border-green-400/50 hover:scale-105 text-white'
+                        }
+                        ${selectedAnswer ? 'cursor-not-allowed' : 'cursor-pointer'}
+                      `}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : null}
       </div>
     </div>
   );

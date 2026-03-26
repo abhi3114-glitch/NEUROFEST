@@ -11,12 +11,12 @@ interface Mood {
 }
 
 const moods: Mood[] = [
-  { emoji: '😊', label: 'Happy', color: 'bg-yellow-100 hover:bg-yellow-200' },
-  { emoji: '😢', label: 'Sad', color: 'bg-blue-100 hover:bg-blue-200' },
-  { emoji: '😠', label: 'Angry', color: 'bg-red-100 hover:bg-red-200' },
-  { emoji: '😰', label: 'Anxious', color: 'bg-purple-100 hover:bg-purple-200' },
-  { emoji: '😴', label: 'Tired', color: 'bg-gray-100 hover:bg-gray-200' },
-  { emoji: '😌', label: 'Calm', color: 'bg-green-100 hover:bg-green-200' },
+  { emoji: '😊', label: 'Happy', color: 'bg-yellow-500/20 hover:bg-yellow-500/30' },
+  { emoji: '😢', label: 'Sad', color: 'bg-blue-500/20 hover:bg-blue-500/30' },
+  { emoji: '😠', label: 'Angry', color: 'bg-red-500/20 hover:bg-red-500/30' },
+  { emoji: '😰', label: 'Anxious', color: 'bg-purple-500/20 hover:bg-purple-500/30' },
+  { emoji: '😴', label: 'Tired', color: 'bg-gray-500/20 hover:bg-gray-500/30' },
+  { emoji: '😌', label: 'Calm', color: 'bg-green-500/20 hover:bg-green-500/30' },
 ];
 
 interface SpeechRecognitionEvent extends Event {
@@ -139,24 +139,24 @@ export default function MoodTracker() {
               `}
             >
               <span className="text-5xl">{mood.emoji}</span>
-              <span className="text-sm font-medium text-gray-700">{mood.label}</span>
+              <span className="text-sm font-medium text-gray-300">{mood.label}</span>
             </button>
           ))}
         </div>
 
         {/* Selected Mood Display */}
         {selectedMood && (
-          <div className="p-4 bg-blue-50 rounded-xl text-center animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <p className="text-lg">
+          <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl text-center animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <p className="text-lg text-gray-200">
               You selected: <span className="text-3xl mx-2">{selectedMood.emoji}</span>
-              <span className="font-semibold text-blue-600">{selectedMood.label}</span>
+              <span className="font-semibold text-blue-400">{selectedMood.label}</span>
             </p>
           </div>
         )}
 
         {/* Note Input */}
         <div className="space-y-3">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-gray-400">
             Want to add a note? (Optional)
           </label>
           <div className="flex gap-2">
@@ -164,7 +164,7 @@ export default function MoodTracker() {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Tell us more about how you're feeling..."
-              className="flex-1 min-h-[100px] p-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 text-base"
+              className="flex-1 min-h-[100px] p-3 bg-white/5 border border-white/10 text-white placeholder:text-gray-500 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 text-base"
             />
           </div>
           <Button

@@ -35,20 +35,20 @@ export default function Index() {
       <div className="neuronest-container py-12 sm:py-20">
         <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="flex justify-center mb-6">
-            <div className="p-4 bg-white rounded-3xl shadow-lg">
-              <Brain className="h-16 w-16 text-blue-500" />
+            <div className="p-4 bg-white/10 backdrop-blur-md rounded-3xl shadow-[0_0_30px_rgba(59,130,246,0.3)] ring-1 ring-white/20">
+              <Brain className="h-16 w-16 text-blue-400" />
             </div>
           </div>
           
-          <h1 className="text-4xl sm:text-6xl font-bold text-gray-900">
-            Welcome to <span className="text-blue-600">NeuroNest</span>
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white drop-shadow-md">
+            Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">NeuroNest</span>
           </h1>
           
-          <p className="text-xl sm:text-2xl text-gray-700 max-w-3xl mx-auto font-medium">
+          <p className="text-xl sm:text-2xl text-purple-200/80 max-w-3xl mx-auto font-medium tracking-wide">
             Learn. Connect. Thrive.
           </p>
           
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto font-light">
             An inclusive AI-powered platform supporting individuals with neurodivergent conditions like Autism and Dyslexia
           </p>
         </div>
@@ -61,8 +61,8 @@ export default function Index() {
           >
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <div className="p-3 bg-blue-100 rounded-2xl">
-                  <Heart className="h-10 w-10 text-blue-600" />
+                <div className="p-3 bg-blue-500/20 ring-1 ring-blue-500/50 rounded-2xl">
+                  <Heart className="h-10 w-10 text-blue-400" />
                 </div>
               </div>
               <CardTitle className="text-2xl">I'm a User</CardTitle>
@@ -83,8 +83,8 @@ export default function Index() {
           >
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <div className="p-3 bg-green-100 rounded-2xl">
-                  <Users className="h-10 w-10 text-green-600" />
+                <div className="p-3 bg-green-500/20 ring-1 ring-green-500/50 rounded-2xl">
+                  <Users className="h-10 w-10 text-green-400" />
                 </div>
               </div>
               <CardTitle className="text-2xl">I'm a Caregiver</CardTitle>
@@ -101,12 +101,12 @@ export default function Index() {
 
           <Card 
             className="neuronest-card cursor-pointer hover:scale-105 transition-transform duration-300"
-            onClick={() => navigate('/caregiver-dashboard')}
+            onClick={() => navigate('/doctor-dashboard')}
           >
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <div className="p-3 bg-purple-100 rounded-2xl">
-                  <Stethoscope className="h-10 w-10 text-purple-600" />
+                <div className="p-3 bg-purple-500/20 ring-1 ring-purple-500/50 rounded-2xl">
+                  <Stethoscope className="h-10 w-10 text-purple-400" />
                 </div>
               </div>
               <CardTitle className="text-2xl">I'm a Doctor</CardTitle>
@@ -124,7 +124,7 @@ export default function Index() {
 
         {/* Features Section */}
         <div className="mt-20">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+          <h2 className="text-3xl font-bold text-center text-white mb-12 tracking-tight">
             Why Choose NeuroNest?
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
